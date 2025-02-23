@@ -1,3 +1,4 @@
+import axios from "axios"
 import { useState } from "react"
 import { validDriveUrl } from "../utils"
 
@@ -5,6 +6,12 @@ const Sidebar = () => {
   const [url, setUrl] = useState("")
   const handleSubmit = async () => {
     console.log("submit", url)
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/submit`, { url })
+      console.log('res: ', res)
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   const handleChange = (e) => {
