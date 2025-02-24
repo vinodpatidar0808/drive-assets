@@ -1,6 +1,7 @@
 const axios = require("axios");
 const fs = require('fs')
 const path = require('path')
+require("dotenv").config();
 
 const DOWNLOAD_FOLDER = path.join(__dirname, "public", "assets");
 
@@ -18,7 +19,6 @@ const fetchDriveFiles = async (folderId) => {
   try {
     // if there are many files, need to handle pagination here, but for now just fetch all
     const response = await axios.get(url);
-    // console.log("response: ", response)
     return response.data.files || [];
   } catch (error) {
     console.error("Error fetching files:", error.response?.data || error.message);
@@ -27,32 +27,33 @@ const fetchDriveFiles = async (folderId) => {
 };
 
 
-let count = 1;
-const downloadFile = async (file, ws) => {
+const downloadFile = async (file, callback) => {
   const { id, name, mimeType } = file;
   // this will only work for folder which are publicly shared, downloading content of private folder will require authentication token from user
-  const fileUrl = `https://www.googleapis.com/drive/v3/files/${id}?key=${process.env.GOOGLE_API_KEY}&alt=media`;
+
+  const fileUrl = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&key=${process.env.GOOGLE_API_KEY}`
   const filePath = path.join(DOWNLOAD_FOLDER, name);
-
   try {
-    const response = await axios({
-      url: fileUrl,
-      method: "GET",
-      responseType: "stream",
-    });
-    // console.log('response: ', response)
-
-    const writer = fs.createWriteStream(filePath);
-    response.data.pipe(writer);
-
-    return new Promise((resolve, reject) => {
-      writer.on("finish", () => {
-        // ws.send(JSON.stringify({ type: "progress", file: name }));
-        console.log("file downloaded successfully")
-        resolve(name);
+    
+    if (!fs.existsSync(filePath)) {
+      const response = await axios({
+        url: fileUrl,
+        method: "GET",
+        responseType: "stream"
       });
-      writer.on("error", reject);
-    });
+      
+      const writer = fs.createWriteStream(filePath);
+      response.data.pipe(writer);
+      return new Promise((resolve, reject) => {
+        writer.on("finish", () => {
+          callback({ file });
+          resolve(name);
+        });
+        writer.on("error", reject);
+      });
+    } else {
+      callback({ file });
+    }
   } catch (error) {
     console.error(`Error downloading ${name}:`, error.message);
     return null;

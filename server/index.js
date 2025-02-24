@@ -20,29 +20,41 @@ app.use(
 // WebSocket Server
 const wss = new WebSocket.Server({ port: 8081 });
 
+// wss.on("connection", (ws) => {
+//   console.log("Client connected");
+
+//   ws.on("message", (message) => {
+//     console.log("Received:", message);
+//   });
+
+//   ws.on("close", () => console.log("Client disconnected"));
+// });
 
 app.post("/api/submit", async (req, res) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: "Invalid URL" });
 
-  // TODO:
-  // 1. get folder id and start download process
-  // 2. Send progress updates
-  // 3. Send completion message
   const folderId = extractFolderId(url);
   if (!folderId) return res.status(400).json({ error: "Invalid Google Drive URL" });
 
   const files = await fetchDriveFiles(folderId);
-  // return res.json({ files });
-
 
   if (!fs.existsSync(DOWNLOAD_FOLDER)) {
     fs.mkdirSync(DOWNLOAD_FOLDER, { recursive: true });
   }
 
+  // keep track of total files and completed files
+  const totalFiles = files.length;
+  let completedFiles = 0;
   files.forEach((file) => {
     if (file.mimeType.startsWith("image/") || file.mimeType.startsWith("video/")) {
-      downloadFile(file, wss.clients.values().next().value);
+      downloadFile(file, (progressData) => {
+        completedFiles++;
+        // wss?.clients?.forEach((client) => {
+        //   // client.send(JSON.stringify({ type: "progress", file: progressData }));
+        //   console.log("client: ", client);
+        // });
+      });
     }
   });
 
