@@ -1,14 +1,13 @@
 import axios from "axios"
 import { useState } from "react"
 import { validDriveUrl } from "../utils"
+import ProgressBar from "./Progressbar"
 
-const Sidebar = () => {
+const Sidebar = ({ completed, total }) => {
   const [url, setUrl] = useState("")
   const handleSubmit = async () => {
-    console.log("submit", url)
     try {
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/submit`, { url })
-      console.log('res: ', res)
     } catch (error) {
       console.log(error)
     }
@@ -30,6 +29,7 @@ const Sidebar = () => {
       ></textarea>
       <button disabled={!validDriveUrl(url)} className="button" onClick={handleSubmit}>Send</button>
       {/* TODO: progress bar */}
+      <ProgressBar completed={completed ?? 0} total={total} />
     </div>
   )
 }
