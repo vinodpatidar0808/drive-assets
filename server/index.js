@@ -20,15 +20,15 @@ app.use(
 // WebSocket Server
 const wss = new WebSocket.Server({ port: 8081 });
 
-// wss.on("connection", (ws) => {
-//   console.log("Client connected");
+wss.on("connection", (ws) => {
+  console.log("Client connected");
 
-//   ws.on("message", (message) => {
-//     console.log("Received:", message);
-//   });
+  ws.on("message", (message) => {
+    console.log("Received:", message);
+  });
 
-//   ws.on("close", () => console.log("Client disconnected"));
-// });
+  ws.on("close", () => console.log("Client disconnected"));
+});
 
 app.post("/api/submit", async (req, res) => {
   const { url } = req.body;
@@ -50,10 +50,9 @@ app.post("/api/submit", async (req, res) => {
     if (file.mimeType.startsWith("image/") || file.mimeType.startsWith("video/")) {
       downloadFile(file, (progressData) => {
         completedFiles++;
-        // wss?.clients?.forEach((client) => {
-        //   // client.send(JSON.stringify({ type: "progress", file: progressData }));
-        //   console.log("client: ", client);
-        // });
+        wss?.clients?.forEach((client) => {
+          client.send(JSON.stringify({ totalFiles, completedFiles, file: progressData }));
+        });
       });
     }
   });
