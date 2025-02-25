@@ -3,19 +3,27 @@ const express = require("express");
 const WebSocket = require("ws");
 const cors = require("cors");
 const fs = require("fs");
-const { extractFolderId, fetchDriveFiles, downloadFile, DOWNLOAD_FOLDER } = require("./utils");
+const path = require('path')
+const { extractFolderId, fetchDriveFiles, downloadFile } = require("./utils");
 
 const app = express();
 const PORT = 8080;
 
 
+const BASE_DOWNLOAD_FOLDER = path.join(__dirname, "public", "assets");
+
+const FRONTEND_URL = process.env.FRONTEND_URL
+
 app.use(express.json());
-app.use(express.static("public"));
-app.use(
-  cors({
-    origin: ["http://localhost:5173"], // Allowed origins
-  })
+app.use(cors({
+  origin: [FRONTEND_URL],
+})
 );
+// app.use(cors());
+// this will server static assets when called from ui
+app.use('/assets', express.static(path.join(__dirname, 'public/assets')));
+
+
 
 // WebSocket Server
 const wss = new WebSocket.Server({ port: 8081 });
@@ -39,6 +47,7 @@ app.post("/api/submit", async (req, res) => {
 
   const files = await fetchDriveFiles(folderId);
 
+  const DOWNLOAD_FOLDER = path.join(BASE_DOWNLOAD_FOLDER, folderId);
   if (!fs.existsSync(DOWNLOAD_FOLDER)) {
     fs.mkdirSync(DOWNLOAD_FOLDER, { recursive: true });
   }
@@ -48,10 +57,10 @@ app.post("/api/submit", async (req, res) => {
   let completedFiles = 0;
   files.forEach((file) => {
     if (file.mimeType.startsWith("image/") || file.mimeType.startsWith("video/")) {
-      downloadFile(file, (progressData) => {
+      downloadFile(DOWNLOAD_FOLDER, folderId, file, (progressData) => {
         completedFiles++;
         wss?.clients?.forEach((client) => {
-          client.send(JSON.stringify({ totalFiles, completedFiles, file: progressData }));
+          client.send(JSON.stringify({ totalFiles, completedFiles, file: { ...progressData } }));
         });
       });
     }
