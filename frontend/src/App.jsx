@@ -22,7 +22,6 @@ function App() {
       socket.onopen = () => console.log("WebSocket connected");
       socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        console.log(data)
         if (data.file) {
           setAssets((prevAssets) => [...prevAssets, data.file]);
           setProgress({
@@ -45,8 +44,6 @@ function App() {
     }
 
   }
-
-  console.log("assets", assets)
 
   return (
     <>

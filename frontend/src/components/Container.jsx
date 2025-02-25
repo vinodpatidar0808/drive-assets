@@ -66,7 +66,6 @@ export default function Container({ assets }) {
       const y = row * (HEIGHT + GAP);
 
       if (asset.mimeType.startsWith("image/")) {
-        console.log("img")
         const img = new Image();
         img.src = getCompleteMediaUrl(asset.url);
         img.onload = () => {

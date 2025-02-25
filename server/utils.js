@@ -15,7 +15,6 @@ const extractFolderId = (url) => {
 
 // fetches files from google drive based on folder id extracted from the url.
 const fetchDriveFiles = async (folderId) => {
-  console.log("fetching files from drive")
   const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${process.env.GOOGLE_API_KEY}&fields=files(id,name,mimeType,webContentLink,thumbnailLink,size,hasThumbnail)`;
 
   try {
