@@ -1,17 +1,9 @@
-import axios from "axios"
 import { useState } from "react"
 import { validDriveUrl } from "../utils"
 import ProgressBar from "./Progressbar"
 
-const Sidebar = ({ completed, total }) => {
+const Sidebar = ({ completed, total, handleSubmit, loading }) => {
   const [url, setUrl] = useState("")
-  const handleSubmit = async () => {
-    try {
-      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/submit`, { url })
-    } catch (error) {
-      console.log(error)
-    }
-  }
 
   const handleChange = (e) => {
     setUrl(e.target.value)
@@ -27,8 +19,7 @@ const Sidebar = ({ completed, total }) => {
         value={url}
         onChange={handleChange}
       ></textarea>
-      <button disabled={!validDriveUrl(url)} className="button" onClick={handleSubmit}>Send</button>
-      {/* TODO: progress bar */}
+      <button disabled={(!validDriveUrl(url) || loading)} className="button" onClick={() => handleSubmit(url)}>Send</button>
       <ProgressBar completed={completed ?? 0} total={total} />
     </div>
   )

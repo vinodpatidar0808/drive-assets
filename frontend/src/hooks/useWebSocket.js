@@ -4,6 +4,7 @@ export default function useWebSocket() {
   const [data, setData] = useState(null);
 
   useEffect(() => {
+    // TODO: handle for the case when socket connection is lost, then we need to reconnect 
     const ws = new WebSocket(import.meta.env.VITE_SOCKET_URL);
 
     ws.onmessage = (event) => {
