@@ -4,10 +4,13 @@ const WebSocket = require("ws");
 const cors = require("cors");
 const fs = require("fs");
 const path = require('path')
+const http = require("http");
+
 const { extractFolderId, fetchDriveFiles, downloadFile } = require("./utils");
 
 const app = express();
-const PORT = 8080;
+const PORT = process.env.port || 8080;
+const server = http.createServer(app);
 
 
 const BASE_DOWNLOAD_FOLDER = path.join(__dirname, "public", "assets");
@@ -26,7 +29,7 @@ app.use('/assets', express.static(path.join(__dirname, 'public/assets')));
 
 
 // WebSocket Server
-const wss = new WebSocket.Server({ port: 8081 });
+const wss = new WebSocket.Server({ server });
 
 wss.on("connection", (ws) => {
   console.log("Client connected");
@@ -69,4 +72,4 @@ app.post("/api/submit", async (req, res) => {
   res.json({ message: "Download process started!" });
 });
 
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
